@@ -169,7 +169,7 @@ import Security
         let msg = cfError?.localizedDescription ?? "Unknown error"
 
         // Check for user cancellation / biometric failure
-        let nsError = cfError as NSError?
+        let nsError = cfError.map { $0 as Error as NSError }
         let resultError: NSError
         if nsError?.domain == NSOSStatusErrorDomain {
           switch nsError?.code {

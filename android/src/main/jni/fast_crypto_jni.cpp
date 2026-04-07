@@ -71,6 +71,7 @@ static void throwException(JNIEnv *env, const std::string &msg) {
 
 // =============================================================================
 // JNI functions — naming: Java_com_fastcrypto_FastCryptoModule_<method>
+// All functions wrapped in try-catch to prevent native crashes
 // =============================================================================
 
 extern "C" {
@@ -83,14 +84,20 @@ JNIEXPORT jbyteArray JNICALL
 Java_com_fastcrypto_FastCryptoModule_nativeHash(JNIEnv *env, jobject /*thiz*/,
                                                 jbyteArray data,
                                                 jstring algorithm) {
-  auto dataVec = jbyteArrayToVec(env, data);
-  auto alg = jstringToStd(env, algorithm);
+  try {
+    auto dataVec = jbyteArrayToVec(env, data);
+    auto alg = jstringToStd(env, algorithm);
 
-  auto result = getCore().hash(dataVec.data(), dataVec.size(), alg);
-  if (!result.ok) {
-    return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    auto result = getCore().hash(dataVec.data(), dataVec.size(), alg);
+    if (!result.ok) {
+      return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    }
+    return vecToJbyteArray(env, result.value);
+  } catch (const std::exception &e) {
+    return throwAndReturn<jbyteArray>(env, e.what(), nullptr);
+  } catch (...) {
+    return throwAndReturn<jbyteArray>(env, "Unknown native error", nullptr);
   }
-  return vecToJbyteArray(env, result.value);
 }
 
 // ---------------------------------------------------------------------------
@@ -101,17 +108,23 @@ JNIEXPORT jbyteArray JNICALL
 Java_com_fastcrypto_FastCryptoModule_nativeArgon2id(
     JNIEnv *env, jobject /*thiz*/, jbyteArray password, jbyteArray salt,
     jint memCost, jint timeCost, jint outputLen) {
-  auto passVec = jbyteArrayToVec(env, password);
-  auto saltVec = jbyteArrayToVec(env, salt);
+  try {
+    auto passVec = jbyteArrayToVec(env, password);
+    auto saltVec = jbyteArrayToVec(env, salt);
 
-  auto result = getCore().argon2id(
-      passVec.data(), passVec.size(), saltVec.data(), saltVec.size(),
-      static_cast<uint32_t>(memCost), static_cast<uint32_t>(timeCost),
-      static_cast<size_t>(outputLen));
-  if (!result.ok) {
-    return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    auto result = getCore().argon2id(
+        passVec.data(), passVec.size(), saltVec.data(), saltVec.size(),
+        static_cast<uint32_t>(memCost), static_cast<uint32_t>(timeCost),
+        static_cast<size_t>(outputLen));
+    if (!result.ok) {
+      return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    }
+    return vecToJbyteArray(env, result.value);
+  } catch (const std::exception &e) {
+    return throwAndReturn<jbyteArray>(env, e.what(), nullptr);
+  } catch (...) {
+    return throwAndReturn<jbyteArray>(env, "Unknown native error", nullptr);
   }
-  return vecToJbyteArray(env, result.value);
 }
 
 // ---------------------------------------------------------------------------
@@ -124,46 +137,57 @@ Java_com_fastcrypto_FastCryptoModule_nativeEncrypt(JNIEnv *env,
                                                    jbyteArray plaintext,
                                                    jbyteArray key,
                                                    jstring algorithm) {
-  auto ptVec = jbyteArrayToVec(env, plaintext);
-  auto keyVec = jbyteArrayToVec(env, key);
-  auto alg = jstringToStd(env, algorithm);
+  try {
+    auto ptVec = jbyteArrayToVec(env, plaintext);
+    auto keyVec = jbyteArrayToVec(env, key);
+    auto alg = jstringToStd(env, algorithm);
 
-  auto result =
-      getCore().encrypt(ptVec.data(), ptVec.size(), keyVec.data(),
-                        keyVec.size(), alg);
-  if (!result.ok) {
-    return throwAndReturn<jobjectArray>(env, result.error, nullptr);
+    auto result =
+        getCore().encrypt(ptVec.data(), ptVec.size(), keyVec.data(),
+                          keyVec.size(), alg);
+    if (!result.ok) {
+      return throwAndReturn<jobjectArray>(env, result.error, nullptr);
+    }
+
+    jclass byteArrayClass = env->FindClass("[B");
+    jobjectArray out = env->NewObjectArray(3, byteArrayClass, nullptr);
+    env->SetObjectArrayElement(out, 0,
+                               vecToJbyteArray(env, result.value.ciphertext));
+    env->SetObjectArrayElement(out, 1,
+                               vecToJbyteArray(env, result.value.nonce));
+    env->SetObjectArrayElement(out, 2,
+                               vecToJbyteArray(env, result.value.tag));
+    return out;
+  } catch (const std::exception &e) {
+    return throwAndReturn<jobjectArray>(env, e.what(), nullptr);
+  } catch (...) {
+    return throwAndReturn<jobjectArray>(env, "Unknown native error", nullptr);
   }
-
-  // Return Array<ByteArray> with 3 elements: [ciphertext, nonce, tag]
-  jclass byteArrayClass = env->FindClass("[B");
-  jobjectArray out = env->NewObjectArray(3, byteArrayClass, nullptr);
-  env->SetObjectArrayElement(out, 0,
-                             vecToJbyteArray(env, result.value.ciphertext));
-  env->SetObjectArrayElement(out, 1,
-                             vecToJbyteArray(env, result.value.nonce));
-  env->SetObjectArrayElement(out, 2,
-                             vecToJbyteArray(env, result.value.tag));
-  return out;
 }
 
 JNIEXPORT jbyteArray JNICALL
 Java_com_fastcrypto_FastCryptoModule_nativeDecrypt(
     JNIEnv *env, jobject /*thiz*/, jbyteArray ciphertext, jbyteArray nonce,
     jbyteArray tag, jbyteArray key, jstring algorithm) {
-  auto ctVec = jbyteArrayToVec(env, ciphertext);
-  auto nonceVec = jbyteArrayToVec(env, nonce);
-  auto tagVec = jbyteArrayToVec(env, tag);
-  auto keyVec = jbyteArrayToVec(env, key);
-  auto alg = jstringToStd(env, algorithm);
+  try {
+    auto ctVec = jbyteArrayToVec(env, ciphertext);
+    auto nonceVec = jbyteArrayToVec(env, nonce);
+    auto tagVec = jbyteArrayToVec(env, tag);
+    auto keyVec = jbyteArrayToVec(env, key);
+    auto alg = jstringToStd(env, algorithm);
 
-  auto result = getCore().decrypt(ctVec.data(), ctVec.size(), nonceVec.data(),
-                                  nonceVec.size(), tagVec.data(), tagVec.size(),
-                                  keyVec.data(), keyVec.size(), alg);
-  if (!result.ok) {
-    return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    auto result = getCore().decrypt(ctVec.data(), ctVec.size(), nonceVec.data(),
+                                    nonceVec.size(), tagVec.data(), tagVec.size(),
+                                    keyVec.data(), keyVec.size(), alg);
+    if (!result.ok) {
+      return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    }
+    return vecToJbyteArray(env, result.value);
+  } catch (const std::exception &e) {
+    return throwAndReturn<jbyteArray>(env, e.what(), nullptr);
+  } catch (...) {
+    return throwAndReturn<jbyteArray>(env, "Unknown native error", nullptr);
   }
-  return vecToJbyteArray(env, result.value);
 }
 
 // ---------------------------------------------------------------------------
@@ -173,48 +197,66 @@ Java_com_fastcrypto_FastCryptoModule_nativeDecrypt(
 JNIEXPORT jobjectArray JNICALL
 Java_com_fastcrypto_FastCryptoModule_nativeGenerateEd25519KeyPair(
     JNIEnv *env, jobject /*thiz*/) {
-  auto result = getCore().generateEd25519KeyPair();
-  if (!result.ok) {
-    return throwAndReturn<jobjectArray>(env, result.error, nullptr);
-  }
+  try {
+    auto result = getCore().generateEd25519KeyPair();
+    if (!result.ok) {
+      return throwAndReturn<jobjectArray>(env, result.error, nullptr);
+    }
 
-  jclass byteArrayClass = env->FindClass("[B");
-  jobjectArray out = env->NewObjectArray(2, byteArrayClass, nullptr);
-  env->SetObjectArrayElement(out, 0,
-                             vecToJbyteArray(env, result.value.publicKey));
-  env->SetObjectArrayElement(out, 1,
-                             vecToJbyteArray(env, result.value.privateKey));
-  return out;
+    jclass byteArrayClass = env->FindClass("[B");
+    jobjectArray out = env->NewObjectArray(2, byteArrayClass, nullptr);
+    env->SetObjectArrayElement(out, 0,
+                               vecToJbyteArray(env, result.value.publicKey));
+    env->SetObjectArrayElement(out, 1,
+                               vecToJbyteArray(env, result.value.privateKey));
+    return out;
+  } catch (const std::exception &e) {
+    return throwAndReturn<jobjectArray>(env, e.what(), nullptr);
+  } catch (...) {
+    return throwAndReturn<jobjectArray>(env, "Unknown native error", nullptr);
+  }
 }
 
 JNIEXPORT jbyteArray JNICALL
 Java_com_fastcrypto_FastCryptoModule_nativeSign(JNIEnv *env, jobject /*thiz*/,
                                                 jbyteArray message,
                                                 jbyteArray privateKey) {
-  auto msgVec = jbyteArrayToVec(env, message);
-  auto pkVec = jbyteArrayToVec(env, privateKey);
+  try {
+    auto msgVec = jbyteArrayToVec(env, message);
+    auto pkVec = jbyteArrayToVec(env, privateKey);
 
-  auto result = getCore().sign(msgVec.data(), msgVec.size(), pkVec.data(),
-                               pkVec.size());
-  if (!result.ok) {
-    return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    auto result = getCore().sign(msgVec.data(), msgVec.size(), pkVec.data(),
+                                 pkVec.size());
+    if (!result.ok) {
+      return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    }
+    return vecToJbyteArray(env, result.value);
+  } catch (const std::exception &e) {
+    return throwAndReturn<jbyteArray>(env, e.what(), nullptr);
+  } catch (...) {
+    return throwAndReturn<jbyteArray>(env, "Unknown native error", nullptr);
   }
-  return vecToJbyteArray(env, result.value);
 }
 
 JNIEXPORT jboolean JNICALL Java_com_fastcrypto_FastCryptoModule_nativeVerify(
     JNIEnv *env, jobject /*thiz*/, jbyteArray message, jbyteArray signature,
     jbyteArray publicKey) {
-  auto msgVec = jbyteArrayToVec(env, message);
-  auto sigVec = jbyteArrayToVec(env, signature);
-  auto pubVec = jbyteArrayToVec(env, publicKey);
+  try {
+    auto msgVec = jbyteArrayToVec(env, message);
+    auto sigVec = jbyteArrayToVec(env, signature);
+    auto pubVec = jbyteArrayToVec(env, publicKey);
 
-  auto result = getCore().verify(msgVec.data(), msgVec.size(), sigVec.data(),
-                                 sigVec.size(), pubVec.data(), pubVec.size());
-  if (!result.ok) {
-    return throwAndReturn<jboolean>(env, result.error, JNI_FALSE);
+    auto result = getCore().verify(msgVec.data(), msgVec.size(), sigVec.data(),
+                                   sigVec.size(), pubVec.data(), pubVec.size());
+    if (!result.ok) {
+      return throwAndReturn<jboolean>(env, result.error, JNI_FALSE);
+    }
+    return result.value ? JNI_TRUE : JNI_FALSE;
+  } catch (const std::exception &e) {
+    return throwAndReturn<jboolean>(env, e.what(), JNI_FALSE);
+  } catch (...) {
+    return throwAndReturn<jboolean>(env, "Unknown native error", JNI_FALSE);
   }
-  return result.value ? JNI_TRUE : JNI_FALSE;
 }
 
 // ---------------------------------------------------------------------------
@@ -224,33 +266,45 @@ JNIEXPORT jboolean JNICALL Java_com_fastcrypto_FastCryptoModule_nativeVerify(
 JNIEXPORT jobjectArray JNICALL
 Java_com_fastcrypto_FastCryptoModule_nativeGenerateX25519KeyPair(
     JNIEnv *env, jobject /*thiz*/) {
-  auto result = getCore().generateX25519KeyPair();
-  if (!result.ok) {
-    return throwAndReturn<jobjectArray>(env, result.error, nullptr);
-  }
+  try {
+    auto result = getCore().generateX25519KeyPair();
+    if (!result.ok) {
+      return throwAndReturn<jobjectArray>(env, result.error, nullptr);
+    }
 
-  jclass byteArrayClass = env->FindClass("[B");
-  jobjectArray out = env->NewObjectArray(2, byteArrayClass, nullptr);
-  env->SetObjectArrayElement(out, 0,
-                             vecToJbyteArray(env, result.value.publicKey));
-  env->SetObjectArrayElement(out, 1,
-                             vecToJbyteArray(env, result.value.privateKey));
-  return out;
+    jclass byteArrayClass = env->FindClass("[B");
+    jobjectArray out = env->NewObjectArray(2, byteArrayClass, nullptr);
+    env->SetObjectArrayElement(out, 0,
+                               vecToJbyteArray(env, result.value.publicKey));
+    env->SetObjectArrayElement(out, 1,
+                               vecToJbyteArray(env, result.value.privateKey));
+    return out;
+  } catch (const std::exception &e) {
+    return throwAndReturn<jobjectArray>(env, e.what(), nullptr);
+  } catch (...) {
+    return throwAndReturn<jobjectArray>(env, "Unknown native error", nullptr);
+  }
 }
 
 JNIEXPORT jbyteArray JNICALL
 Java_com_fastcrypto_FastCryptoModule_nativeX25519DiffieHellman(
     JNIEnv *env, jobject /*thiz*/, jbyteArray privateKey,
     jbyteArray peerPublicKey) {
-  auto privVec = jbyteArrayToVec(env, privateKey);
-  auto peerVec = jbyteArrayToVec(env, peerPublicKey);
+  try {
+    auto privVec = jbyteArrayToVec(env, privateKey);
+    auto peerVec = jbyteArrayToVec(env, peerPublicKey);
 
-  auto result = getCore().x25519DiffieHellman(privVec.data(), privVec.size(),
-                                              peerVec.data(), peerVec.size());
-  if (!result.ok) {
-    return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    auto result = getCore().x25519DiffieHellman(privVec.data(), privVec.size(),
+                                                peerVec.data(), peerVec.size());
+    if (!result.ok) {
+      return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    }
+    return vecToJbyteArray(env, result.value);
+  } catch (const std::exception &e) {
+    return throwAndReturn<jbyteArray>(env, e.what(), nullptr);
+  } catch (...) {
+    return throwAndReturn<jbyteArray>(env, "Unknown native error", nullptr);
   }
-  return vecToJbyteArray(env, result.value);
 }
 
 // ---------------------------------------------------------------------------
@@ -260,23 +314,35 @@ Java_com_fastcrypto_FastCryptoModule_nativeX25519DiffieHellman(
 JNIEXPORT jbyteArray JNICALL
 Java_com_fastcrypto_FastCryptoModule_nativeGenerateRandomBytes(
     JNIEnv *env, jobject /*thiz*/, jint length) {
-  auto result = getCore().generateRandomBytes(static_cast<size_t>(length));
-  if (!result.ok) {
-    return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+  try {
+    auto result = getCore().generateRandomBytes(static_cast<size_t>(length));
+    if (!result.ok) {
+      return throwAndReturn<jbyteArray>(env, result.error, nullptr);
+    }
+    return vecToJbyteArray(env, result.value);
+  } catch (const std::exception &e) {
+    return throwAndReturn<jbyteArray>(env, e.what(), nullptr);
+  } catch (...) {
+    return throwAndReturn<jbyteArray>(env, "Unknown native error", nullptr);
   }
-  return vecToJbyteArray(env, result.value);
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_fastcrypto_FastCryptoModule_nativeConstantTimeEquals(
     JNIEnv *env, jobject /*thiz*/, jbyteArray a, jbyteArray b) {
-  auto aVec = jbyteArrayToVec(env, a);
-  auto bVec = jbyteArrayToVec(env, b);
+  try {
+    auto aVec = jbyteArrayToVec(env, a);
+    auto bVec = jbyteArrayToVec(env, b);
 
-  bool result =
-      getCore().constantTimeEquals(aVec.data(), aVec.size(), bVec.data(),
-                                   bVec.size());
-  return result ? JNI_TRUE : JNI_FALSE;
+    bool result =
+        getCore().constantTimeEquals(aVec.data(), aVec.size(), bVec.data(),
+                                     bVec.size());
+    return result ? JNI_TRUE : JNI_FALSE;
+  } catch (const std::exception &e) {
+    return throwAndReturn<jboolean>(env, e.what(), JNI_FALSE);
+  } catch (...) {
+    return throwAndReturn<jboolean>(env, "Unknown native error", JNI_FALSE);
+  }
 }
 
 } // extern "C"

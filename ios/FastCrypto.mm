@@ -8,7 +8,7 @@
 #import <React/RCTUtils.h>
 
 // Swift bridging header for SecureEnclaveHelper
-#import "react_native_fast_crypto-Swift.h"
+#import "FastCrypto-Swift.h"
 
 // ── Singleton C++ objects ────────────────────────────────────────────
 static fastcrypto::FastCryptoCore &getCryptoCore() {

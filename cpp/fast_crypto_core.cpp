@@ -9,6 +9,10 @@
 #include <openssl/sha.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#include <openssl/kdf.h>
+#include <openssl/params.h>
+#endif
 #endif
 
 #ifdef FAST_CRYPTO_USE_LIBSODIUM
@@ -34,6 +38,11 @@ static constexpr size_t MAX_RANDOM_BYTES = 1024 * 1024; // 1 MB
 // ── Constructor / Destructor ───────────────────────────────────────
 
 FastCryptoCore::FastCryptoCore() {
+#ifdef FAST_CRYPTO_USE_OPENSSL
+  // Initialize OpenSSL error strings for better error messages
+  ERR_load_crypto_strings();
+  OpenSSL_add_all_algorithms();
+#endif
 #ifdef FAST_CRYPTO_USE_LIBSODIUM
   if (sodium_init() < 0) {
     // Already initialized is OK (-1 means failure, 0 means success, 1 means
@@ -42,7 +51,12 @@ FastCryptoCore::FastCryptoCore() {
 #endif
 }
 
-FastCryptoCore::~FastCryptoCore() = default;
+FastCryptoCore::~FastCryptoCore() {
+#ifdef FAST_CRYPTO_USE_OPENSSL
+  EVP_cleanup();
+  ERR_free_strings();
+#endif
+}
 
 // ── Hashing ────────────────────────────────────────────────────────
 
@@ -118,7 +132,8 @@ FastCryptoCore::argon2id(const uint8_t *password, size_t passwordLen,
   }
 
 #ifdef FAST_CRYPTO_USE_OPENSSL
-  // OpenSSL 3.2+ has Argon2 via EVP_KDF
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+  // OpenSSL 3.x has Argon2 via EVP_KDF
   EVP_KDF *kdf = EVP_KDF_fetch(nullptr, "ARGON2ID", nullptr);
   if (!kdf) {
     return Result<std::vector<uint8_t>>::Err(
@@ -153,6 +168,12 @@ FastCryptoCore::argon2id(const uint8_t *password, size_t passwordLen,
   }
 
   return Result<std::vector<uint8_t>>::Ok(std::move(output));
+#else
+  // OpenSSL 1.1.1 does not support Argon2
+  return Result<std::vector<uint8_t>>::Err(
+      "UNKNOWN_NATIVE_ERROR: Argon2id requires OpenSSL 3.x or libsodium. "
+      "On Android, use iOS or a device with OpenSSL 3.x.");
+#endif
 
 #elif defined(FAST_CRYPTO_USE_LIBSODIUM)
   if (saltLen != crypto_pwhash_SALTBYTES) {
@@ -250,7 +271,7 @@ FastCryptoCore::encryptAesGcm(const uint8_t *plaintext, size_t plaintextLen,
   result.tag.resize(AES_GCM_TAG_SIZE);
 
   // Generate random nonce via CSPRNG
-  if (RAND_bytes(result.nonce.data(), AES_GCM_NONCE_SIZE) != 1) {
+  if (RAND_bytes(result.nonce.data(), static_cast<int>(AES_GCM_NONCE_SIZE)) != 1) {
     return Result<CipherResultNative>::Err("UNKNOWN_NATIVE_ERROR: failed to generate nonce");
   }
 
@@ -260,27 +281,37 @@ FastCryptoCore::encryptAesGcm(const uint8_t *plaintext, size_t plaintextLen,
   }
 
   int len = 0;
+  int totalLen = 0;
   result.ciphertext.resize(plaintextLen + AES_GCM_TAG_SIZE);
 
   bool success = true;
-  success = success && EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr,
-                                          nullptr, nullptr) == 1;
+  const EVP_CIPHER *cipher = EVP_aes_256_gcm();
+  if (!cipher) {
+    EVP_CIPHER_CTX_free(ctx);
+    return Result<CipherResultNative>::Err("UNKNOWN_NATIVE_ERROR: AES-256-GCM not available");
+  }
+
+  success = success && EVP_EncryptInit_ex(ctx, cipher, nullptr, nullptr, nullptr) == 1;
   success = success && EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN,
-                                           AES_GCM_NONCE_SIZE, nullptr) == 1;
+                                           static_cast<int>(AES_GCM_NONCE_SIZE), nullptr) == 1;
   success = success &&
             EVP_EncryptInit_ex(ctx, nullptr, nullptr, key,
                                result.nonce.data()) == 1;
-  success = success &&
-            EVP_EncryptUpdate(ctx, result.ciphertext.data(), &len, plaintext,
+  if (success) {
+    success = success && EVP_EncryptUpdate(ctx, result.ciphertext.data(), &len, plaintext,
                               static_cast<int>(plaintextLen)) == 1;
-  int ciphertextLen = len;
-  success =
-      success && EVP_EncryptFinal_ex(ctx, result.ciphertext.data() + len, &len) == 1;
-  ciphertextLen += len;
+    totalLen = len;
+  }
+  if (success) {
+    success = success && EVP_EncryptFinal_ex(ctx, result.ciphertext.data() + totalLen, &len) == 1;
+    totalLen += len;
+  }
 
-  success = success && EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG,
-                                           AES_GCM_TAG_SIZE,
-                                           result.tag.data()) == 1;
+  if (success) {
+    success = success && EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG,
+                                             static_cast<int>(AES_GCM_TAG_SIZE),
+                                             result.tag.data()) == 1;
+  }
 
   EVP_CIPHER_CTX_free(ctx);
 
@@ -288,7 +319,7 @@ FastCryptoCore::encryptAesGcm(const uint8_t *plaintext, size_t plaintextLen,
     return Result<CipherResultNative>::Err("UNKNOWN_NATIVE_ERROR: AES-GCM encryption failed");
   }
 
-  result.ciphertext.resize(ciphertextLen);
+  result.ciphertext.resize(totalLen);
   return Result<CipherResultNative>::Ok(std::move(result));
 
 #elif defined(FAST_CRYPTO_USE_LIBSODIUM)

@@ -1,25 +1,38 @@
 // Polyfill TextEncoder/TextDecoder for React Native (must run before anything else)
-globalThis.TextEncoder = class TextEncoder {
-  encode(input) {
-    const bytes = new Uint8Array(input.length);
-    for (let i = 0; i < input.length; i++) {
+// React Native's Hermes engine may have stub implementations, so we force override
+(function() {
+  'use strict';
+  
+  // TextEncoder polyfill
+  function TextEncoderPolyfill() {}
+  TextEncoderPolyfill.prototype.encode = function(input) {
+    var bytes = new Uint8Array(input.length);
+    for (var i = 0; i < input.length; i++) {
       bytes[i] = input.charCodeAt(i) & 0xff;
     }
     return bytes;
-  }
-};
-
-globalThis.TextDecoder = class TextDecoder {
-  decode(input) {
-    const bytes = input instanceof ArrayBuffer ? new Uint8Array(input) : input;
-    if (!bytes) return '';
-    let result = '';
-    for (let i = 0; i < bytes.length; i++) {
+  };
+  
+  // TextDecoder polyfill
+  function TextDecoderPolyfill() {}
+  TextDecoderPolyfill.prototype.decode = function(input) {
+    if (!input) return '';
+    var bytes = input instanceof ArrayBuffer ? new Uint8Array(input) : input;
+    var result = '';
+    for (var i = 0; i < bytes.length; i++) {
       result += String.fromCharCode(bytes[i]);
     }
     return result;
+  };
+  
+  // Force override global
+  global.TextEncoder = TextEncoderPolyfill;
+  global.TextDecoder = TextDecoderPolyfill;
+  if (typeof globalThis !== 'undefined') {
+    globalThis.TextEncoder = TextEncoderPolyfill;
+    globalThis.TextDecoder = TextDecoderPolyfill;
   }
-};
+})();
 
 import { AppRegistry } from 'react-native';
 import App from './src/App';

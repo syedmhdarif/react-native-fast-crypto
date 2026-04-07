@@ -9,7 +9,7 @@ PODS:
     - fmt
     - glog
     - hermes-engine
-    - OpenSSL-Universal (~> 3.1)
+    - OpenSSL-Universal (~> 1.1)
     - RCT-Folly
     - RCT-Folly/Fabric
     - RCTRequired
@@ -37,7 +37,7 @@ PODS:
   - hermes-engine (0.14.0):
     - hermes-engine/Pre-built (= 0.14.0)
   - hermes-engine/Pre-built (0.14.0)
-  - OpenSSL-Universal (3.6.0000)
+  - OpenSSL-Universal (1.1.2301)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -2732,12 +2732,12 @@ SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
-  FastCrypto: 9eac8a4cfd60bb9b93510e55721fd174da14d0e6
+  FastCrypto: 9aef29aec232d9675ac926faa5f1f9316ab686f3
   FBLazyVector: a293a88992c4c33f0aee184acab0b64a08ff9458
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   hermes-engine: 6103f5bf61b2f12361b06cd1d34f8a8b6baea13e
-  OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
+  OpenSSL-Universal: ca89c20240633a77c776082ba76b7d90f992bf77
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: 2b70c6e3abe00396cefd8913efbf6a2db01a2b36
   RCTRequired: f3540eee8094231581d40c5c6d41b0f170237a81
@@ -2810,6 +2810,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 6ca93c8c13f56baeec55eb608577619b17a4d64e
 
-PODFILE CHECKSUM: 53c016d0a1f77feccc630de183b4c618aa1bf367
+PODFILE CHECKSUM: aeaa18004115420c50f4ee2fbf0d30b46c529d91
 
 COCOAPODS: 1.16.2
