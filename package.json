@@ -1,6 +1,6 @@
 {
   "name": "@hikayat/react-native-fast-crypto",
-  "version": "0.1.0",
+  "version": "0.1.0-beta.1",
   "description": "High-performance cryptographic primitives for React Native via JSI TurboModule",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
