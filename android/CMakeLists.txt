@@ -42,18 +42,38 @@ target_include_directories(fast_crypto PRIVATE
 )
 
 # ---------------------------------------------------------------------------
-# OpenSSL 1.1.1 — provided via prefab
+# OpenSSL 1.1.1w — vendored static library (built by scripts/build-openssl-android.sh)
+#
+# We vendor a pre-built static libcrypto.a for each ABI to guarantee 16KB page
+# alignment. The final .so inherits alignment from -Wl,-z,max-page-size=16384
+# set above. No prefab dependency needed.
 # ---------------------------------------------------------------------------
 
-find_package(openssl REQUIRED CONFIG)
+set(OPENSSL_LIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs")
 
-target_link_libraries(fast_crypto
-  openssl::crypto
+# Find the correct libcrypto.a for the current ABI
+set(OPENSSL_CRYPTO_LIB "${OPENSSL_LIBS_DIR}/${ANDROID_ABI}/libcrypto.a")
+
+if(NOT EXISTS "${OPENSSL_CRYPTO_LIB}")
+  message(FATAL_ERROR
+    "FastCrypto: vendored libcrypto.a not found at ${OPENSSL_CRYPTO_LIB}\n"
+    "Run: scripts/build-openssl-android.sh to build OpenSSL for Android."
+  )
+endif()
+
+message(STATUS "FastCrypto: using vendored OpenSSL from ${OPENSSL_CRYPTO_LIB}")
+
+add_library(openssl_crypto STATIC IMPORTED)
+set_target_properties(openssl_crypto PROPERTIES
+  IMPORTED_LOCATION "${OPENSSL_CRYPTO_LIB}"
+  INTERFACE_INCLUDE_DIRECTORIES "${OPENSSL_LIBS_DIR}/include"
 )
 
+target_link_libraries(fast_crypto openssl_crypto)
+
 # ---------------------------------------------------------------------------
-# Android system libraries
+# Android system libraries (libcrypto.a may need these)
 # ---------------------------------------------------------------------------
 
 find_library(LOG_LIB log)
-target_link_libraries(fast_crypto ${LOG_LIB})
+target_link_libraries(fast_crypto ${LOG_LIB} dl atomic)

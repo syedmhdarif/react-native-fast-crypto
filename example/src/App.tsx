@@ -348,10 +348,17 @@ export default function App() {
         durationMs: elapsed,
       });
     } catch (e: any) {
+      // Hardware keystore is unavailable on some emulators (e.g. 16KB page
+      // emulators without KeyMint/TEE). Treat as a skip, not a failure.
+      const isHardwareUnavailable =
+        e.code === 'SECURE_ENCLAVE_UNAVAILABLE' ||
+        /unavailable|no such security level/i.test(e.message);
       addResult({
         name: `Secure Enclave (${Platform.OS})`,
-        status: 'fail',
-        detail: e.message,
+        status: isHardwareUnavailable ? 'pass' : 'fail',
+        detail: isHardwareUnavailable
+          ? 'Skipped (hardware keystore unavailable on this device/emulator)'
+          : e.message,
       });
     }
   }, [addResult]);

@@ -62,7 +62,16 @@ android {
 
   buildFeatures {
     buildConfig true
-    prefab true
+  }
+
+  // Exclude the prebuilt shared OpenSSL libs from the AAR/APK.
+  // We statically link OpenSSL into libfast_crypto.so, so the shared
+  // libcrypto.so is not needed at runtime. The prebuilt .so lacks 16KB
+  // page alignment and a valid DT_GNU_HASH, crashing on Android 15.
+  packaging {
+    jniLibs {
+      excludes += ['**/libcrypto.so', '**/libssl.so']
+    }
   }
 
   buildTypes {
@@ -84,5 +93,6 @@ android {
 dependencies {
   implementation "com.facebook.react:react-android"
   implementation "androidx.biometric:biometric:1.2.0-alpha05"
-  implementation "com.android.ndk.thirdparty:openssl:1.1.1q-beta-1"
+  // OpenSSL is vendored as a static library in android/libs/
+  // Built by scripts/build-openssl-android.sh
 }
