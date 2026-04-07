@@ -5,6 +5,10 @@
 #include <cstring>
 #include <stdexcept>
 
+#ifdef FAST_CRYPTO_USE_OPENSSL
+#include <openssl/crypto.h>
+#endif
+
 #ifdef FAST_CRYPTO_USE_LIBSODIUM
 #include <sodium.h>
 #endif

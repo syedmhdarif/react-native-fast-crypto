@@ -106,7 +106,11 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
   // ---------------------------------------------------------------------------
 
   override fun hashSync(data: String, algorithm: String): String {
-    return toB64(nativeHash(fromB64(data), algorithm))
+    return try {
+      toB64(nativeHash(fromB64(data), algorithm))
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   override fun hash(data: String, algorithm: String, promise: Promise) {
@@ -125,10 +129,14 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
     password: String, salt: String,
     memCost: Double, timeCost: Double, outputLen: Double
   ): String {
-    return toB64(nativeArgon2id(
-      fromB64(password), fromB64(salt),
-      memCost.toInt(), timeCost.toInt(), outputLen.toInt()
-    ))
+    return try {
+      toB64(nativeArgon2id(
+        fromB64(password), fromB64(salt),
+        memCost.toInt(), timeCost.toInt(), outputLen.toInt()
+      ))
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   override fun argon2id(
@@ -153,8 +161,12 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
   override fun encryptSync(
     plaintext: String, key: String, algorithm: String
   ): WritableMap {
-    val parts = nativeEncrypt(fromB64(plaintext), fromB64(key), algorithm)
-    return makeCipherResultMap(parts)
+    return try {
+      val parts = nativeEncrypt(fromB64(plaintext), fromB64(key), algorithm)
+      makeCipherResultMap(parts)
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   override fun encrypt(
@@ -173,10 +185,14 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
     ciphertext: String, nonce: String, tag: String,
     key: String, algorithm: String
   ): String {
-    return toB64(nativeDecrypt(
-      fromB64(ciphertext), fromB64(nonce), fromB64(tag),
-      fromB64(key), algorithm
-    ))
+    return try {
+      toB64(nativeDecrypt(
+        fromB64(ciphertext), fromB64(nonce), fromB64(tag),
+        fromB64(key), algorithm
+      ))
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   override fun decrypt(
@@ -199,8 +215,12 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
   // ---------------------------------------------------------------------------
 
   override fun generateEd25519KeyPairSync(): WritableMap {
-    val parts = nativeGenerateEd25519KeyPair()
-    return makeKeyPairMap(parts)
+    return try {
+      val parts = nativeGenerateEd25519KeyPair()
+      makeKeyPairMap(parts)
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   override fun generateEd25519KeyPair(promise: Promise) {
@@ -211,7 +231,11 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
   }
 
   override fun signSync(message: String, privateKey: String): String {
-    return toB64(nativeSign(fromB64(message), fromB64(privateKey)))
+    return try {
+      toB64(nativeSign(fromB64(message), fromB64(privateKey)))
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   override fun sign(message: String, privateKey: String, promise: Promise) {
@@ -226,7 +250,11 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
   override fun verifySync(
     message: String, signature: String, publicKey: String
   ): Boolean {
-    return nativeVerify(fromB64(message), fromB64(signature), fromB64(publicKey))
+    return try {
+      nativeVerify(fromB64(message), fromB64(signature), fromB64(publicKey))
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   override fun verify(
@@ -247,14 +275,22 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
   // ---------------------------------------------------------------------------
 
   override fun generateX25519KeyPairSync(): WritableMap {
-    val parts = nativeGenerateX25519KeyPair()
-    return makeKeyPairMap(parts)
+    return try {
+      val parts = nativeGenerateX25519KeyPair()
+      makeKeyPairMap(parts)
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   override fun xDiffieHellmanSync(
     privateKey: String, peerPublicKey: String
   ): String {
-    return toB64(nativeX25519DiffieHellman(fromB64(privateKey), fromB64(peerPublicKey)))
+    return try {
+      toB64(nativeX25519DiffieHellman(fromB64(privateKey), fromB64(peerPublicKey)))
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -406,7 +442,11 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
   // ---------------------------------------------------------------------------
 
   override fun generateRandomBytesSync(length: Double): String {
-    return toB64(nativeGenerateRandomBytes(length.toInt()))
+    return try {
+      toB64(nativeGenerateRandomBytes(length.toInt()))
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 
   override fun generateRandomBytes(length: Double, promise: Promise) {
@@ -417,6 +457,10 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
   }
 
   override fun constantTimeEquals(a: String, b: String): Boolean {
-    return nativeConstantTimeEquals(fromB64(a), fromB64(b))
+    return try {
+      nativeConstantTimeEquals(fromB64(a), fromB64(b))
+    } catch (e: RuntimeException) {
+      throw Exception(e.message)
+    }
   }
 }

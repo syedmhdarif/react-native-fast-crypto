@@ -7,7 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Security hardening flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong -D_FORTIFY_SOURCE=2")
 
-# Use OpenSSL on Android
+# 16KB page size support (required for Android 15+ devices/emulators)
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
+
+# Use OpenSSL on Android (1.1.1 - Argon2 not available, other crypto works)
 add_definitions(-DFAST_CRYPTO_USE_OPENSSL)
 
 # ---------------------------------------------------------------------------
@@ -39,44 +42,14 @@ target_include_directories(fast_crypto PRIVATE
 )
 
 # ---------------------------------------------------------------------------
-# OpenSSL — provided via prefab from the host app or a third-party package.
-# Projects typically provide OpenSSL via one of:
-#   1. prefab (find_package)
-#   2. Pre-built static libs pointed to by OPENSSL_ROOT_DIR
+# OpenSSL 1.1.1 — provided via prefab
 # ---------------------------------------------------------------------------
 
-# Try prefab first (used by apps that ship OpenSSL via Gradle dependencies)
-find_package(openssl QUIET CONFIG)
+find_package(openssl REQUIRED CONFIG)
 
-if(openssl_FOUND)
-  target_link_libraries(fast_crypto
-    openssl::ssl
-    openssl::crypto
-  )
-else()
-  # Fallback: expect OPENSSL_ROOT_DIR to be set (e.g. from build.gradle)
-  if(DEFINED OPENSSL_ROOT_DIR)
-    target_include_directories(fast_crypto PRIVATE
-      ${OPENSSL_ROOT_DIR}/include
-    )
-    # Link against pre-built static libraries for the target ABI
-    find_library(OPENSSL_SSL_LIB ssl PATHS ${OPENSSL_ROOT_DIR}/lib/${ANDROID_ABI} NO_DEFAULT_PATH)
-    find_library(OPENSSL_CRYPTO_LIB crypto PATHS ${OPENSSL_ROOT_DIR}/lib/${ANDROID_ABI} NO_DEFAULT_PATH)
-    target_link_libraries(fast_crypto
-      ${OPENSSL_SSL_LIB}
-      ${OPENSSL_CRYPTO_LIB}
-    )
-  else()
-    message(WARNING
-      "OpenSSL not found via prefab or OPENSSL_ROOT_DIR. "
-      "You must provide OpenSSL for the target Android ABIs. "
-      "See the project README for instructions."
-    )
-    # Still try system find as a last resort
-    find_package(OpenSSL REQUIRED)
-    target_link_libraries(fast_crypto OpenSSL::SSL OpenSSL::Crypto)
-  endif()
-endif()
+target_link_libraries(fast_crypto
+  openssl::crypto
+)
 
 # ---------------------------------------------------------------------------
 # Android system libraries

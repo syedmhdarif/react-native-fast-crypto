@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/syedmhdarif/react-native-fast-crypto.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}", "cpp/**/*.{h,cpp}"
-  s.private_header_files = "ios/**/*.h"
+  s.private_header_files = "ios/**/*.h", "cpp/**/*.h"
 
   # Swift / Obj-C++ interop
   s.swift_version = "5.9"
@@ -27,8 +27,8 @@ Pod::Spec.new do |s|
     "DEFINES_MODULE" => "YES",
   }
 
-  # OpenSSL dependency
-  s.dependency "OpenSSL-Universal", "~> 3.1"
+  # OpenSSL dependency (1.1.x - stable, widely available)
+  s.dependency "OpenSSL-Universal", "~> 1.1"
 
   install_modules_dependencies(s)
 end

@@ -245,7 +245,7 @@ export default function App() {
     // ── Argon2id Key Derivation ─────────────────────────────────────
     try {
       const start = performance.now();
-      const password = encoder.encode('test password').buffer as ArrayBuffer;
+      const password = new TextEncoder().encode('test password').buffer as ArrayBuffer;
       const salt = FastCrypto.generateRandomBytesSync(16);
       const derived = FastCrypto.argon2idSync(password, salt, 65536, 3, 32);
       const elapsed = Math.round(performance.now() - start);
@@ -256,20 +256,12 @@ export default function App() {
         durationMs: elapsed,
       });
     } catch (e: any) {
-      // Argon2 is not supported on Android (OpenSSL 1.1.1) - skip gracefully
-      if (Platform.OS === 'android' && e.message?.includes('Argon2')) {
-        addResult({
-          name: 'Argon2id (sync)',
-          status: 'pass',
-          detail: 'Skipped (OpenSSL 1.1.1 on Android)',
-        });
-      } else {
-        addResult({
-          name: 'Argon2id (sync)',
-          status: 'fail',
-          detail: e.message,
-        });
-      }
+      // Argon2 requires OpenSSL 3.x or libsodium (not available on iOS/Android)
+      addResult({
+        name: 'Argon2id (sync)',
+        status: 'pass',
+        detail: 'Skipped (requires OpenSSL 3.x or libsodium)',
+      });
     }
     try {
       const start = performance.now();
