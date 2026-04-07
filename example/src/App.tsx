@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FastCrypto, toHex } from 'react-native-fast-crypto';
+import { FastCrypto, toHex } from '@hikayat/react-native-fast-crypto';
 
 type TestResult = {
   name: string;

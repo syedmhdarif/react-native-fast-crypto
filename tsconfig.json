@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "react-native-fast-crypto": ["./src/index"]
+      "@hikayat/react-native-fast-crypto": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
