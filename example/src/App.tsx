@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import {
-  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -220,8 +219,7 @@ export default function App() {
     // ── Ed25519 Sign/Verify ────────────────────────────────────────
     try {
       const start = performance.now();
-      const { publicKey, privateKey } =
-        FastCrypto.generateEd25519KeyPairSync();
+      const { publicKey, privateKey } = FastCrypto.generateEd25519KeyPairSync();
       const encoder = new TextEncoder();
       const message = encoder.encode('sign me please').buffer as ArrayBuffer;
       const signature = FastCrypto.signSync(message, privateKey);
@@ -245,7 +243,8 @@ export default function App() {
     // ── Argon2id Key Derivation ─────────────────────────────────────
     try {
       const start = performance.now();
-      const password = new TextEncoder().encode('test password').buffer as ArrayBuffer;
+      const password = new TextEncoder().encode('test password')
+        .buffer as ArrayBuffer;
       const salt = FastCrypto.generateRandomBytesSync(16);
       const derived = FastCrypto.argon2idSync(password, salt, 65536, 3, 32);
       const elapsed = Math.round(performance.now() - start);
@@ -255,7 +254,7 @@ export default function App() {
         detail: `${derived.byteLength} bytes derived`,
         durationMs: elapsed,
       });
-    } catch (e: any) {
+    } catch {
       // Argon2 requires OpenSSL 3.x or libsodium (not available on iOS/Android)
       addResult({
         name: 'Argon2id (sync)',
@@ -321,7 +320,7 @@ export default function App() {
       // Clean up any previous key
       try {
         await FastCrypto.deleteSecureEnclaveKey(keyTag);
-      } catch (_) {
+      } catch {
         // Key might not exist
       }
 
@@ -331,10 +330,14 @@ export default function App() {
       const encoder = new TextEncoder();
       const plaintext = encoder.encode('secure enclave test')
         .buffer as ArrayBuffer;
-      const encrypted =
-        await FastCrypto.encryptWithSecureEnclaveKey(keyTag, plaintext);
-      const decrypted =
-        await FastCrypto.decryptWithSecureEnclaveKey(keyTag, encrypted);
+      const encrypted = await FastCrypto.encryptWithSecureEnclaveKey(
+        keyTag,
+        plaintext
+      );
+      const decrypted = await FastCrypto.decryptWithSecureEnclaveKey(
+        keyTag,
+        encrypted
+      );
       const elapsed = Math.round(performance.now() - start);
 
       const decoder = new TextDecoder();

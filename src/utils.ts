@@ -1,10 +1,9 @@
-const HEX_CHARS = '0123456789abcdef';
-
 export function toHex(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let hex = '';
   for (let i = 0; i < bytes.length; i++) {
-    hex += HEX_CHARS[bytes[i]! >> 4] + HEX_CHARS[bytes[i]! & 0x0f];
+    const b = bytes[i]!;
+    hex += (b >>> 4).toString(16) + (b & 0x0f).toString(16);
   }
   return hex;
 }

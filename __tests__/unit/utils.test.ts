@@ -1,4 +1,10 @@
-import { toHex, fromHex, toBase64, fromBase64, toUint8Array } from '../../src/utils';
+import {
+  toHex,
+  fromHex,
+  toBase64,
+  fromBase64,
+  toUint8Array,
+} from '../../src/utils';
 
 describe('toHex', () => {
   it('converts empty buffer', () => {
@@ -48,7 +54,9 @@ describe('toBase64 / fromBase64', () => {
     const b64 = toBase64(data);
     expect(b64).toBe('SGVsbG8=');
     const decoded = fromBase64(b64);
-    expect(new Uint8Array(decoded)).toEqual(new Uint8Array([72, 101, 108, 108, 111]));
+    expect(new Uint8Array(decoded)).toEqual(
+      new Uint8Array([72, 101, 108, 108, 111])
+    );
   });
 
   it('handles empty buffer', () => {

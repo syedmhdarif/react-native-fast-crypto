@@ -3,9 +3,10 @@ module.exports = {
   testMatch: ['**/__tests__/unit/**/*.test.ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   transform: {
-    '^.+\\.(ts|tsx)$': ['babel-jest', { presets: ['@react-native/babel-preset'] }],
+    '^.+\\.(ts|tsx)$': [
+      'babel-jest',
+      { presets: ['@react-native/babel-preset'] },
+    ],
   },
-  transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native)/)',
-  ],
+  transformIgnorePatterns: ['node_modules/(?!(react-native|@react-native)/)'],
 };

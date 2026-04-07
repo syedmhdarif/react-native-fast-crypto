@@ -212,9 +212,7 @@ export const FastCrypto = {
 
   // --- X25519 ---
   generateX25519KeyPairSync(): KeyPair {
-    return nativeKeyPairToKeyPair(
-      NativeFastCrypto.generateX25519KeyPairSync()
-    );
+    return nativeKeyPairToKeyPair(NativeFastCrypto.generateX25519KeyPairSync());
   },
   xDiffieHellmanSync(
     privateKey: ArrayBuffer,

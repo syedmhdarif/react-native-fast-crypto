@@ -5,7 +5,6 @@
  * Import it in the example app or a Detox test to collect timings.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FastCrypto } from '../../src/index';
 
 type BenchmarkResult = {

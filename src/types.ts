@@ -1,4 +1,8 @@
-export type { HashAlgorithm, AEADAlgorithm, FastCryptoErrorCode } from './NativeFastCrypto';
+export type {
+  HashAlgorithm,
+  AEADAlgorithm,
+  FastCryptoErrorCode,
+} from './NativeFastCrypto';
 
 export type CipherResult = {
   ciphertext: ArrayBuffer;
