@@ -1,7 +1,7 @@
 buildscript {
   ext.FastCrypto = [
     kotlinVersion: "2.0.21",
-    minSdkVersion: 24,
+    minSdkVersion: 23,
     compileSdkVersion: 36,
     targetSdkVersion: 36
   ]
@@ -40,10 +40,29 @@ android {
   defaultConfig {
     minSdkVersion getExtOrDefault("minSdkVersion")
     targetSdkVersion getExtOrDefault("targetSdkVersion")
+
+    ndk {
+      abiFilters "arm64-v8a", "x86_64"
+    }
+
+    externalNativeBuild {
+      cmake {
+        cppFlags "-std=c++17 -fstack-protector-strong"
+        arguments "-DANDROID_STL=c++_shared"
+      }
+    }
+  }
+
+  externalNativeBuild {
+    cmake {
+      path "CMakeLists.txt"
+      version "3.22.1"
+    }
   }
 
   buildFeatures {
     buildConfig true
+    prefab true
   }
 
   buildTypes {
@@ -64,4 +83,6 @@ android {
 
 dependencies {
   implementation "com.facebook.react:react-android"
+  implementation "androidx.biometric:biometric:1.2.0-alpha05"
+  implementation "com.android.ndk.thirdparty:openssl:1.1.1q-beta-1"
 }

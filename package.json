@@ -35,13 +35,26 @@
     "example": "yarn workspace react-native-fast-crypto-example",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
+    "test": "jest --config jest.config.js",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\""
   },
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "crypto",
+    "cryptography",
+    "encryption",
+    "aes",
+    "chacha20",
+    "ed25519",
+    "x25519",
+    "argon2",
+    "secure-enclave",
+    "turbomodule",
+    "jsi",
+    "new-architecture"
   ],
   "repository": {
     "type": "git",
