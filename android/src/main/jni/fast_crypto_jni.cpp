@@ -308,6 +308,17 @@ Java_com_fastcrypto_FastCryptoModule_nativeX25519DiffieHellman(
 }
 
 // ---------------------------------------------------------------------------
+// Feature Detection
+// ---------------------------------------------------------------------------
+
+JNIEXPORT jboolean JNICALL
+Java_com_fastcrypto_FastCryptoModule_nativeIsArgon2idAvailable(
+    JNIEnv * /*env*/, jobject /*thiz*/) {
+  return fastcrypto::FastCryptoCore::isArgon2idAvailable() ? JNI_TRUE
+                                                           : JNI_FALSE;
+}
+
+// ---------------------------------------------------------------------------
 // Utilities
 // ---------------------------------------------------------------------------
 

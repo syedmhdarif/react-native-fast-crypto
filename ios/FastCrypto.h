@@ -92,6 +92,9 @@
                        resolve:(RCTPromiseResolveBlock)resolve
                         reject:(RCTPromiseRejectBlock)reject;
 
+// --- Feature Detection ---
+- (NSNumber *)isArgon2idAvailable;
+
 // --- Utilities ---
 - (NSString *)generateRandomBytesSync:(double)length;
 - (void)generateRandomBytes:(double)length

@@ -1,5 +1,6 @@
 #include "fast_crypto_core.h"
 #include "memory_guard.h"
+#include "argon2_ref.h"
 
 #include <cstring>
 
@@ -169,10 +170,17 @@ FastCryptoCore::argon2id(const uint8_t *password, size_t passwordLen,
 
   return Result<std::vector<uint8_t>>::Ok(std::move(output));
 #else
-  // OpenSSL 1.1.1 does not support Argon2
-  return Result<std::vector<uint8_t>>::Err(
-      "UNKNOWN_NATIVE_ERROR: Argon2id requires OpenSSL 3.x or libsodium. "
-      "On Android, use iOS or a device with OpenSSL 3.x.");
+  // OpenSSL < 3.0: use standalone Argon2id reference implementation (RFC 9106)
+  std::vector<uint8_t> output(outputLen);
+  int rc = argon2_ref::argon2id_hash(
+      timeCost, memCost, 4 /* parallelism */,
+      password, passwordLen, salt, saltLen,
+      output.data(), outputLen);
+  if (rc != 0) {
+    return Result<std::vector<uint8_t>>::Err(
+        "UNKNOWN_NATIVE_ERROR: Argon2id derivation failed");
+  }
+  return Result<std::vector<uint8_t>>::Ok(std::move(output));
 #endif
 
 #elif defined(FAST_CRYPTO_USE_LIBSODIUM)
@@ -833,6 +841,14 @@ bool FastCryptoCore::constantTimeEquals(const uint8_t *a, size_t aLen,
   }
   return diff == 0;
 #endif
+}
+
+// ── Feature Detection ─────────────────────────────────────────────
+
+bool FastCryptoCore::isArgon2idAvailable() {
+  // Always available: OpenSSL 3.x uses EVP_KDF, OpenSSL 1.x uses
+  // standalone reference implementation, libsodium uses crypto_pwhash.
+  return true;
 }
 
 } // namespace fastcrypto

@@ -76,7 +76,7 @@ Quick Crypto is a solid Node.js `crypto` polyfill, but it mirrors the Node API r
 - **AEAD Encryption** -- AES-256-GCM, ChaCha20-Poly1305
 - **Digital Signatures** -- Ed25519 (RFC 8032)
 - **Key Exchange** -- X25519 ECDH (RFC 7748)
-- **Key Derivation** -- Argon2id (RFC 9106, requires OpenSSL 3.x or libsodium)
+- **Key Derivation** -- Argon2id (RFC 9106, works on all platforms)
 - **Secure Enclave / TEE** -- Hardware-backed key storage (iOS Secure Enclave, Android Keystore/StrongBox)
 - **Utilities** -- CSPRNG, constant-time comparison
 - **Sync + Async** -- Every operation has both sync and Promise-based variants
@@ -178,9 +178,9 @@ const sharedB = FastCrypto.xDiffieHellmanSync(bob.privateKey, alice.publicKey);
 // sharedA === sharedB (32-byte shared secret)
 ```
 
-### Argon2id Key Derivation
+### Argon2id Key Derivation (RFC 9106)
 
-> Requires OpenSSL 3.x or libsodium. Falls back gracefully on platforms using OpenSSL 1.1.x.
+Works on all platforms: iOS (CryptoKit), Android (standalone reference implementation), and any platform with OpenSSL 3.x or libsodium.
 
 ```typescript
 const password = new TextEncoder().encode('my password').buffer as ArrayBuffer;
@@ -188,6 +188,11 @@ const salt = FastCrypto.generateRandomBytesSync(16);
 const derived = FastCrypto.argon2idSync(password, salt, 65536, 3, 32);
 // or async
 const derived = await FastCrypto.argon2id(password, salt, 65536, 3, 32);
+
+// Runtime feature detection
+if (FastCrypto.isArgon2idAvailable()) {
+  // Argon2id is supported on this platform
+}
 ```
 
 ### Secure Enclave / TEE
@@ -268,7 +273,7 @@ TurboModule bridge (JSI)
 ```
 
 - **iOS**: Apple CryptoKit for modern crypto, Security.framework for Secure Enclave
-- **Android**: OpenSSL 1.1.1w compiled as a static library with 16KB page alignment, Android Keystore for hardware-backed keys
+- **Android**: OpenSSL 1.1.1w compiled as a static library with 16KB page alignment, standalone Argon2id (RFC 9106) reference implementation, Android Keystore for hardware-backed keys
 - **Shared**: C++17 core (`cpp/fast_crypto_core.cpp`) used on Android, separate native implementation on iOS
 
 ## Android 16KB Page Support

@@ -92,6 +92,9 @@ public:
                                                    const uint8_t *peerPublicKey,
                                                    size_t peerPublicKeyLen);
 
+  // --- Feature Detection ---
+  static bool isArgon2idAvailable();
+
   // --- Utilities ---
   Result<std::vector<uint8_t>> generateRandomBytes(size_t length);
   bool constantTimeEquals(const uint8_t *a, size_t aLen, const uint8_t *b,

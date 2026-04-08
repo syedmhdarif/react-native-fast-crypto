@@ -113,6 +113,9 @@ export interface Spec extends TurboModule {
   ): Promise<string>;
   deleteSecureEnclaveKey(keyTag: string): Promise<void>;
 
+  // --- Feature Detection ---
+  isArgon2idAvailable(): boolean;
+
   // --- Utilities ---
   generateRandomBytesSync(length: number): string;
   generateRandomBytes(length: number): Promise<string>;

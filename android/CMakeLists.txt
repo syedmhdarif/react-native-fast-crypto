@@ -11,7 +11,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong -D_FORTIFY_SOUR
 # Dead code elimination (complements -ffunction-sections/-fdata-sections from OpenSSL build)
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384 -Wl,--gc-sections")
 
-# Use OpenSSL on Android (1.1.1 - Argon2 not available, other crypto works)
+# Use OpenSSL on Android (1.1.1w + standalone Argon2id reference implementation)
 add_definitions(-DFAST_CRYPTO_USE_OPENSSL)
 
 # ---------------------------------------------------------------------------
@@ -22,6 +22,7 @@ set(CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cpp")
 
 set(FAST_CRYPTO_CORE_SOURCES
   ${CPP_DIR}/fast_crypto_core.cpp
+  ${CPP_DIR}/argon2_ref.cpp
 )
 
 set(FAST_CRYPTO_JNI_SOURCES

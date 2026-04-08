@@ -257,6 +257,11 @@ export const FastCrypto = {
     return NativeFastCrypto.deleteSecureEnclaveKey(keyTag);
   },
 
+  // --- Feature Detection ---
+  isArgon2idAvailable(): boolean {
+    return NativeFastCrypto.isArgon2idAvailable();
+  },
+
   // --- Utilities ---
   generateRandomBytesSync(length: number): ArrayBuffer {
     return b642ab(NativeFastCrypto.generateRandomBytesSync(length));

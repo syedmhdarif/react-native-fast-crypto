@@ -61,6 +61,7 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
     privateKey: ByteArray, peerPublicKey: ByteArray
   ): ByteArray
 
+  private external fun nativeIsArgon2idAvailable(): Boolean
   private external fun nativeGenerateRandomBytes(length: Int): ByteArray
   private external fun nativeConstantTimeEquals(a: ByteArray, b: ByteArray): Boolean
 
@@ -435,6 +436,14 @@ class FastCryptoModule(reactContext: ReactApplicationContext) :
         promise.reject("SECURE_ENCLAVE_UNAVAILABLE", e.message, e)
       }
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Feature Detection
+  // ---------------------------------------------------------------------------
+
+  override fun isArgon2idAvailable(): Boolean {
+    return nativeIsArgon2idAvailable()
   }
 
   // ---------------------------------------------------------------------------

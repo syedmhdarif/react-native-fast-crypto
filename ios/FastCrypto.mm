@@ -482,6 +482,14 @@ static inline void rejectWithError(RCTPromiseRejectBlock reject, const std::stri
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+// MARK: - Feature Detection
+// ═══════════════════════════════════════════════════════════════════════
+
+- (NSNumber *)isArgon2idAvailable {
+  return @(fastcrypto::FastCryptoCore::isArgon2idAvailable());
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // MARK: - Utilities
 // ═══════════════════════════════════════════════════════════════════════
 

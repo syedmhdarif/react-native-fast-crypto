@@ -10,10 +10,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong -D_FORTIFY_SOUR
 # Shared C++ source files
 set(FAST_CRYPTO_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/fast_crypto_core.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/argon2_ref.cpp
 )
 
 set(FAST_CRYPTO_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/fast_crypto_core.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/argon2_ref.h
   ${CMAKE_CURRENT_SOURCE_DIR}/memory_guard.h
   ${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.h
 )
