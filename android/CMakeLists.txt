@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong -D_FORTIFY_SOURCE=2")
 
 # 16KB page size support (required for Android 15+ devices/emulators)
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
+# Dead code elimination (complements -ffunction-sections/-fdata-sections from OpenSSL build)
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384 -Wl,--gc-sections")
 
 # Use OpenSSL on Android (1.1.1 - Argon2 not available, other crypto works)
 add_definitions(-DFAST_CRYPTO_USE_OPENSSL)

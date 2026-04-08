@@ -24,14 +24,23 @@ extern "C" {
  * OpenSSL was configured with the following options:
  */
 
+#ifndef OPENSSL_NO_ARIA
+# define OPENSSL_NO_ARIA
+#endif
 #ifndef OPENSSL_NO_BF
 # define OPENSSL_NO_BF
+#endif
+#ifndef OPENSSL_NO_BLAKE2
+# define OPENSSL_NO_BLAKE2
 #endif
 #ifndef OPENSSL_NO_CAMELLIA
 # define OPENSSL_NO_CAMELLIA
 #endif
 #ifndef OPENSSL_NO_CAST
 # define OPENSSL_NO_CAST
+#endif
+#ifndef OPENSSL_NO_CMAC
+# define OPENSSL_NO_CMAC
 #endif
 #ifndef OPENSSL_NO_CMS
 # define OPENSSL_NO_CMS
@@ -44,6 +53,12 @@ extern "C" {
 #endif
 #ifndef OPENSSL_NO_DES
 # define OPENSSL_NO_DES
+#endif
+#ifndef OPENSSL_NO_DH
+# define OPENSSL_NO_DH
+#endif
+#ifndef OPENSSL_NO_DSA
+# define OPENSSL_NO_DSA
 #endif
 #ifndef OPENSSL_NO_IDEA
 # define OPENSSL_NO_IDEA

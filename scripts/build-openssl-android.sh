@@ -214,7 +214,13 @@ build_openssl() {
     no-nextprotoneg \
     no-psk \
     no-heartbeats \
+    no-dh \
+    no-dsa \
+    no-aria \
+    no-blake2 \
+    no-cmac \
     -fPIC \
+    -Os \
     -ffunction-sections \
     -fdata-sections \
     "$PAGE_FLAG"
@@ -224,6 +230,9 @@ build_openssl() {
 
   # Install headers and libraries
   make install_sw
+
+  # Strip debug symbols to reduce static library size (~10-20% savings)
+  "${STRIP}" --strip-debug "${INSTALL_DIR}/lib/libcrypto.a"
 
   echo "Built: ${INSTALL_DIR}/lib/libcrypto.a"
 }

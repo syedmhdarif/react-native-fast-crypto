@@ -41,7 +41,7 @@ KEEP_HEADERS=(
   randerr.h
   sha.h
 
-  # Transitive dependencies
+  # Transitive dependencies (required by the headers above)
   opensslconf.h
   opensslv.h
   ossl_typ.h
@@ -78,10 +78,6 @@ KEEP_HEADERS=(
   x509v3err.h
   pkcs7.h
   pkcs7err.h
-  dh.h
-  dherr.h
-  dsa.h
-  dsaerr.h
   rsa.h
   rsaerr.h
   conf.h
