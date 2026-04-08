@@ -1,0 +1,47 @@
+# Example app
+example/
+
+# Build artifacts
+ios/build/
+android/build/
+android/.cxx/
+android/.gradle/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+
+# Development files
+.github/
+.vscode/
+.claude/
+.yarn/
+.openssl-build/
+*.log
+.turbo/
+
+# Tests
+__tests__/
+__fixtures__/
+__mocks__/
+jest.config.*
+tsconfig.json
+tsconfig.build.json
+eslint.config.*
+babel.config.*
+CONTRIBUTING.md
+turbo.json
+
+# Screenshot assets (for README only, not runtime)
+src/assets/
+lib/module/assets/
+
+# Source maps
+*.map
+
+# Scripts
+scripts/
+
+# Misc
+*.tgz
+.editorconfig

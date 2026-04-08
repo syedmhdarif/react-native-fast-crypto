@@ -165,10 +165,9 @@ build_openssl() {
   # 16KB page alignment flag
   local PAGE_FLAG="-Wl,-z,max-page-size=16384"
 
-  # Configure OpenSSL
-  # no-shared: build static libraries only
-  # no-tests: skip building tests
-  # no-ui-console: not needed for Android
+  # Configure OpenSSL — crypto-only, minimal build
+  # We only need: EVP (AES-GCM, ChaCha20-Poly1305), SHA, RAND,
+  # EC (Ed25519, X25519), BN. Everything else is disabled.
   ./Configure "$OPENSSL_TARGET" \
     -D__ANDROID_API__=${ANDROID_API} \
     --prefix="$INSTALL_DIR" \
@@ -180,7 +179,44 @@ build_openssl() {
     no-comp \
     no-hw \
     no-dso \
+    no-ssl \
+    no-tls \
+    no-dtls \
+    no-cms \
+    no-ocsp \
+    no-ts \
+    no-srp \
+    no-srtp \
+    no-ct \
+    no-idea \
+    no-mdc2 \
+    no-rc2 \
+    no-rc4 \
+    no-rc5 \
+    no-seed \
+    no-camellia \
+    no-bf \
+    no-cast \
+    no-des \
+    no-md2 \
+    no-md4 \
+    no-ripemd \
+    no-whirlpool \
+    no-async \
+    no-gost \
+    no-sm2 \
+    no-sm3 \
+    no-sm4 \
+    no-scrypt \
+    no-sock \
+    no-dgram \
+    no-filenames \
+    no-nextprotoneg \
+    no-psk \
+    no-heartbeats \
     -fPIC \
+    -ffunction-sections \
+    -fdata-sections \
     "$PAGE_FLAG"
 
   # Build (only libcrypto, we don't need libssl)
@@ -227,6 +263,10 @@ echo "Headers: ${OUTPUT_DIR}/include/openssl/"
 ls "${OUTPUT_DIR}/include/openssl/" | head -5
 echo "  ... ($(ls "${OUTPUT_DIR}/include/openssl/" | wc -l | tr -d ' ') files total)"
 echo ""
+
+# Trim unused OpenSSL headers
+echo "Trimming unused OpenSSL headers..."
+bash "${PROJECT_ROOT}/scripts/trim-openssl-headers.sh"
 
 # Verify 16KB alignment in the static library objects
 echo "Verifying page alignment flag in build..."

@@ -5,9 +5,9 @@ High-performance cryptographic primitives for React Native, powered by C++ Turbo
 Built on OpenSSL (Android) and Apple CryptoKit / Security.framework (iOS) for native-speed crypto with a clean TypeScript API.
 
 <p align="center">
-  <img src="src/assets/android-screen.png" width="300" alt="Android test results" />
+  <img src=".github/assets/android-screen.png" width="300" alt="Android test results" />
   &nbsp;&nbsp;&nbsp;
-  <img src="src/assets/ios-screen.png" width="300" alt="iOS test results" />
+  <img src=".github/assets/ios-screen.png" width="300" alt="iOS test results" />
 </p>
 
 ## Why This Package?
