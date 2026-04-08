@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "argon2_ref.h"
+#include "memory_guard.h"
 
 #include <algorithm>
 #include <cstring>
